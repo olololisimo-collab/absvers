@@ -22,9 +22,9 @@ import {
   ShoppingCart,
   Plus
 } from "lucide-react";
-import LockerConfigurator from "../../LockerConfigurator";
-import AdminDashboard from "../../AdminDashboard";
-import AdminOrdersPanel from "../../AdminOrdersPanel";
+import LockerConfigurator from "./components/LockerConfigurator";
+import AdminDashboard from "./components/AdminDashboard";
+import AdminOrdersPanel from "./components/AdminOrdersPanel";
 import CartModal, { CartItem } from "./components/CartModal";
 import MobileNavigation from "./components/MobileNavigation";
 

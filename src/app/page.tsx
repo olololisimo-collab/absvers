@@ -26,6 +26,7 @@ import LockerConfigurator from "../../LockerConfigurator";
 import AdminDashboard from "../../AdminDashboard";
 import AdminOrdersPanel from "../../AdminOrdersPanel";
 import CartModal, { CartItem } from "./components/CartModal";
+import MobileNavigation from "./components/MobileNavigation";
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<"catalog" | "configurator" | "admin" | "orders">("catalog");
@@ -100,8 +101,16 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#1B4965] text-white shadow-md">
+      {/* Mobile Navigation (Header, Bottom Bar, Drawer) */}
+      <MobileNavigation 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        cartCount={totalCartCount} 
+        onOpenCart={() => setIsCartOpen(true)} 
+      />
+
+      {/* Desktop Header */}
+      <header className="hidden md:block sticky top-0 z-50 bg-[#1B4965] text-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab("catalog")}>
             <div className="w-10 h-10 rounded-xl bg-[#8BC34A] flex items-center justify-center font-black text-xl text-slate-900 shadow-inner">
@@ -177,7 +186,7 @@ export default function HomePage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main className="flex-1 pb-20 md:pb-0">
         {activeTab === "catalog" && (
           <div>
             {/* Hero Section */}

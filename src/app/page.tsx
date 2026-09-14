@@ -18,17 +18,88 @@ import {
   Building2, 
   Award,
   Sparkles,
-  UserCheck
+  UserCheck,
+  ShoppingCart,
+  Plus
 } from "lucide-react";
 import LockerConfigurator from "../../LockerConfigurator";
 import AdminDashboard from "../../AdminDashboard";
 import AdminOrdersPanel from "../../AdminOrdersPanel";
+import CartModal, { CartItem } from "./components/CartModal";
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<"catalog" | "configurator" | "admin" | "orders">("catalog");
+  
+  // Shopping cart state
+  const [cartItems, setCartItems] = useState<CartItem[]>([
+    {
+      id: "cart-init-1",
+      modelId: "T-382L",
+      name: "Модульный шкаф absvers Т-382L (2 яруса)",
+      description: "Комплект 3 секции / 6 ячеек, цвет Синий/Серый, механический замок",
+      dimensions: "Ш1146 × Г500 × В1940 мм",
+      image: "/images/card_t382l_ruby_red.png",
+      price: 24800,
+      quantity: 1
+    }
+  ]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartToast, setCartToast] = useState<string | null>(null);
+
+  // Cart operations
+  const handleAddToCart = (item: CartItem) => {
+    setCartItems(prev => {
+      const existing = prev.find(p => p.id === item.id || (p.modelId === item.modelId && !p.isCustomConfig && !item.isCustomConfig));
+      if (existing) {
+        return prev.map(p => p.id === existing.id ? { ...p, quantity: p.quantity + item.quantity } : p);
+      }
+      return [...prev, item];
+    });
+
+    setCartToast(`«${item.name}» добавлен в корзину`);
+    setTimeout(() => {
+      setCartToast(null);
+    }, 3500);
+  };
+
+  const handleUpdateQuantity = (id: string, newQty: number) => {
+    if (newQty <= 0) {
+      handleRemoveItem(id);
+      return;
+    }
+    setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: newQty } : item));
+  };
+
+  const handleRemoveItem = (id: string) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
+  };
+
+  const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+      {/* Toast Notification */}
+      {cartToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3 animate-bounce">
+          <div className="w-8 h-8 rounded-full bg-[#8BC34A] text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">
+            ✓
+          </div>
+          <div className="text-sm font-medium">
+            <span>{cartToast}</span>
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="ml-3 text-[#8BC34A] hover:underline font-bold"
+            >
+              В корзину →
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#1B4965] text-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -86,6 +157,21 @@ export default function HomePage() {
               <Settings className="w-4 h-4" />
               <span className="hidden md:inline">Склад и цены</span>
             </button>
+
+            {/* Cart Header Button */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#8BC34A] to-[#7CB342] text-slate-950 font-black text-sm shadow-md hover:brightness-105 transition flex items-center gap-2"
+              title="Открыть корзину"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span className="hidden sm:inline">Корзина</span>
+              {totalCartCount > 0 && (
+                <span className="bg-slate-950 text-[#8BC34A] text-xs font-black px-1.5 py-0.5 rounded-full shadow-inner">
+                  {totalCartCount}
+                </span>
+              )}
+            </button>
           </nav>
         </div>
       </header>
@@ -119,12 +205,13 @@ export default function HomePage() {
                         Рассчитать в 3D-конфигураторе
                         <ArrowRight className="w-4 h-4" />
                       </button>
-                      <a
-                        href="#models"
-                        className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-base transition border border-white/20"
+                      <button
+                        onClick={() => setIsCartOpen(true)}
+                        className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-base transition border border-white/20 flex items-center gap-2"
                       >
-                        Модельный ряд
-                      </a>
+                        <ShoppingCart className="w-5 h-5 text-[#8BC34A]" />
+                        <span>Корзина ({totalCartCount})</span>
+                      </button>
                     </div>
 
                     <div className="mt-10 grid grid-cols-3 gap-4 border-t border-white/15 pt-6 text-slate-200">
@@ -242,17 +329,38 @@ export default function HomePage() {
                           Односекционный полноразмерный шкаф для премиальных фитнес-клубов и офисов. Оснащен штангой для длинной одежды и полкой для обуви.
                         </p>
                       </div>
-                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <div>
-                          <span className="text-xs text-slate-400 block">Базовая цена от</span>
-                          <span className="text-xl font-extrabold text-slate-900">18 500 ₽</span>
+                      <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs text-slate-400 block">Базовая цена секции</span>
+                            <span className="text-xl font-extrabold text-slate-900">18 500 ₽</span>
+                          </div>
+                          <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded">В наличии</span>
                         </div>
-                        <button
-                          onClick={() => setActiveTab("configurator")}
-                          className="px-4 py-2 bg-[#8BC34A] hover:bg-[#7CB342] text-slate-950 font-bold text-xs rounded-lg transition"
-                        >
-                          Сконфигурировать
-                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => handleAddToCart({
+                              id: `t-382xxl-${Date.now()}`,
+                              modelId: "T-382XXL",
+                              name: "Модульный шкаф absvers Т-382XXL (1 ярус)",
+                              description: "Односекционный шкаф полной высоты (1860 мм) с механическим замком",
+                              dimensions: "Ш382 × Г500 × В1940 мм",
+                              image: "/images/card_t382xxl_royal_blue.png",
+                              price: 18500,
+                              quantity: 1
+                            })}
+                            className="px-3 py-2 bg-[#8BC34A] hover:bg-[#7CB342] text-slate-950 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm"
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            В корзину
+                          </button>
+                          <button
+                            onClick={() => setActiveTab("configurator")}
+                            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition text-center"
+                          >
+                            Настроить
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -277,17 +385,38 @@ export default function HomePage() {
                           Самый популярный двухъярусный формат для спортивных комплексов и бассейнов. Вмещает спортивную сумку, куртку и сменную обувь.
                         </p>
                       </div>
-                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <div>
-                          <span className="text-xs text-slate-400 block">Базовая цена секции</span>
-                          <span className="text-xl font-extrabold text-slate-900">12 400 ₽</span>
+                      <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs text-slate-400 block">Базовая цена секции</span>
+                            <span className="text-xl font-extrabold text-slate-900">12 400 ₽</span>
+                          </div>
+                          <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded">В наличии</span>
                         </div>
-                        <button
-                          onClick={() => setActiveTab("configurator")}
-                          className="px-4 py-2 bg-[#8BC34A] hover:bg-[#7CB342] text-slate-950 font-bold text-xs rounded-lg transition"
-                        >
-                          Сконфигурировать
-                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => handleAddToCart({
+                              id: `t-382l-${Date.now()}`,
+                              modelId: "T-382L",
+                              name: "Модульный шкаф absvers Т-382L (2 яруса)",
+                              description: "Двухъярусная секция (925 мм ячейка) с механическим замком",
+                              dimensions: "Ш382 × Г500 × В1940 мм",
+                              image: "/images/card_t382l_ruby_red.png",
+                              price: 12400,
+                              quantity: 1
+                            })}
+                            className="px-3 py-2 bg-[#8BC34A] hover:bg-[#7CB342] text-slate-950 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm"
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            В корзину
+                          </button>
+                          <button
+                            onClick={() => setActiveTab("configurator")}
+                            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition text-center"
+                          >
+                            Настроить
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -312,17 +441,38 @@ export default function HomePage() {
                           Трехъярусная компоновка для учебных заведений, детских садов, камер хранения в супермаркетах и производственных раздевалок.
                         </p>
                       </div>
-                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <div>
-                          <span className="text-xs text-slate-400 block">Базовая цена секции</span>
-                          <span className="text-xl font-extrabold text-slate-900">9 800 ₽</span>
+                      <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs text-slate-400 block">Базовая цена секции</span>
+                            <span className="text-xl font-extrabold text-slate-900">9 800 ₽</span>
+                          </div>
+                          <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded">В наличии</span>
                         </div>
-                        <button
-                          onClick={() => setActiveTab("configurator")}
-                          className="px-4 py-2 bg-[#8BC34A] hover:bg-[#7CB342] text-slate-950 font-bold text-xs rounded-lg transition"
-                        >
-                          Сконфигурировать
-                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => handleAddToCart({
+                              id: `t-382m-${Date.now()}`,
+                              modelId: "T-382M",
+                              name: "Модульный шкаф absvers Т-382M (3 яруса)",
+                              description: "Трехъярусная секция (620 мм ячейка) с механическим замком",
+                              dimensions: "Ш382 × Г500 × В1940 мм",
+                              image: "/images/card_t382m_grey_yellow_mix.png",
+                              price: 9800,
+                              quantity: 1
+                            })}
+                            className="px-3 py-2 bg-[#8BC34A] hover:bg-[#7CB342] text-slate-950 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm"
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            В корзину
+                          </button>
+                          <button
+                            onClick={() => setActiveTab("configurator")}
+                            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition text-center"
+                          >
+                            Настроить
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -366,7 +516,7 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    <div className="mt-8">
+                    <div className="mt-8 flex gap-3">
                       <button
                         onClick={() => setActiveTab("configurator")}
                         className="px-6 py-3 rounded-xl bg-[#1B4965] hover:bg-[#144B6E] text-white font-bold text-sm shadow transition"
@@ -379,49 +529,45 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* Applications Grid */}
-            <section className="py-16 bg-slate-50">
+            {/* Delivery & Payment Info */}
+            <section className="py-16 bg-slate-50 border-b border-slate-200">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-12">
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1B4965]">
-                    Сферы применения локеров absvers
+                  <span className="text-sm font-bold text-[#8BC34A] tracking-wider uppercase">Сервис и логистика</span>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1B4965] mt-1">
+                    Условия доставки, оплаты и монтажа
                   </h2>
-                  <p className="mt-2 text-slate-600 text-sm">
-                    Шкафчики спроектированы с учетом санитарных норм и строгих требований к надежности.
-                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
-                      <Droplets className="w-6 h-6" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#1B4965] flex items-center justify-center font-bold mb-4">
+                      🚚
                     </div>
-                    <h4 className="font-bold text-slate-900">Бассейны и СПА</h4>
-                    <p className="text-xs text-slate-500 mt-1">100% защита от пара и хлорированной воды</p>
+                    <h4 className="font-bold text-slate-900 text-base">Доставка по всей России и СНГ</h4>
+                    <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                      Отправка транспортными компаниями (СДЭК, Деловые Линии, ПЭК) в надежной усиленной обрешетке. Отгрузка со склада в течение 24 часов.
+                    </p>
                   </div>
 
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
-                      <Award className="w-6 h-6" />
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold mb-4">
+                      📑
                     </div>
-                    <h4 className="font-bold text-slate-900">Фитнес-клубы</h4>
-                    <p className="text-xs text-slate-500 mt-1">Стильный дизайн под фирменные цвета бренда</p>
+                    <h4 className="font-bold text-slate-900 text-base">Оплата для юрлиц и физлиц</h4>
+                    <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                      Безналичный расчёт по счёту с НДС 20% для юридических лиц и ИП. Быстрая онлайн-оплата картами и через СБП без комиссий.
+                    </p>
                   </div>
 
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
-                      <Building2 className="w-6 h-6" />
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold mb-4">
+                      🛠️
                     </div>
-                    <h4 className="font-bold text-slate-900">Школы и детсады</h4>
-                    <p className="text-xs text-slate-500 mt-1">Безопасные скругленные углы и яркие фасады</p>
-                  </div>
-
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3">
-                      <UserCheck className="w-6 h-6" />
-                    </div>
-                    <h4 className="font-bold text-slate-900">Офисы и заводы</h4>
-                    <p className="text-xs text-slate-500 mt-1">Камеры хранения личных вещей и спецодежды</p>
+                    <h4 className="font-bold text-slate-900 text-base">Монтаж и сборка под ключ</h4>
+                    <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                      Выезд профессиональной бригады монтажников: расстановка рядов, стяжка модульных блоков, крепление к стенам и настройка электронных замков.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -435,18 +581,27 @@ export default function HomePage() {
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1B4965]">
-                    Интерактивный конфигуратор шкафов absvers
+                    Интерактивный 3D-Конфигуратор локеров absvers
                   </h1>
                   <p className="text-sm text-slate-600 mt-1">
-                    Сформируйте модульную компоновку, выберите модель, цвета дверей и замки.
+                    Смоделируйте консольный блок: выберите высоту, ярусы, палитру цветов и замковые системы.
                   </p>
                 </div>
-                <button
-                  onClick={() => setActiveTab("catalog")}
-                  className="text-xs font-semibold px-3 py-2 bg-white rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
-                >
-                  ← Назад к каталогу
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsCartOpen(true)}
+                    className="px-3.5 py-2 bg-[#8BC34A] text-slate-950 font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>Корзина ({totalCartCount})</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("catalog")}
+                    className="text-xs font-semibold px-3 py-2 bg-white rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
+                  >
+                    ← В каталог
+                  </button>
+                </div>
               </div>
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
@@ -511,6 +666,18 @@ export default function HomePage() {
         )}
       </main>
 
+      {/* Cart Modal / Checkout Drawer */}
+      <CartModal
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+        onOpenCatalog={() => setActiveTab("catalog")}
+        onOpenConfigurator={() => setActiveTab("configurator")}
+      />
+
       {/* Footer */}
       <footer className="bg-[#1B4965] text-white border-t border-white/10 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -550,15 +717,15 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#8BC34A]" />
-                  <span>г. Москва / Доставка по РФ и СНГ</span>
+                  <span>г. Москва, склад готовой продукции</span>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
-            <p>© {new Date().getFullYear()} absvers. Все права защищены.</p>
-            <p>Модульные АБС-системы хранения и локеры</p>
+          <div className="mt-8 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400">
+            <p>© {new Date().getFullYear()} absvers. Все права защищены. Модульные шкафы из инженерного пластика.</p>
+            <p className="mt-2 sm:mt-0">Разработано для фитнес-клубов, школ, офисов и производств</p>
           </div>
         </div>
       </footer>

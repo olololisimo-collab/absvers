@@ -1,0 +1,91 @@
+// ============================================================================
+// СХЕМА БАЗЫ ДАННЫХ ДЛЯ ИНТЕРНЕТ-МАГАЗИНА ABSVERS (PRISMA SCHEMA)
+// Поддерживает PostgreSQL / Supabase / Neon / MySQL
+// ============================================================================
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. ТАБЛИЦА ТОВАРОВ И МОДЕЛЕЙ ШКАФОВ
+model Product {
+  id              String         @id @default(cuid())
+  article         String         @unique // Например: "ABS-T382L"
+  name            String         // "Шкаф АБС Т-382L (2 яруса / Фитнес-Спорт)"
+  category        String         // "modular_lockers", "locks", "accessories"
+  modelSeries     String         // "T-382L", "T-382XXL", "T-382M"
+  dimensions      String         // "382 × 500 × 930 мм"
+  cellHeight      Int?           // Высота ячейки в мм (напр. 930)
+  tiers           Int?           // Количество ярусов по высоте (1, 2, 3, 4)
+  basePrice       Decimal        @db.Decimal(10, 2) // Розничная цена продажи
+  costPrice       Decimal        @db.Decimal(10, 2) // Себестоимость
+  stockQuantity   Int            @default(0) // Остаток на складе (шт)
+  reservedQuantity Int           @default(0) // Резерв под оплаченные заказы
+  minStockAlert   Int            @default(10) // Порог предупреждения
+  status          String         @default("in_stock") // "in_stock", "low_stock", "out_of_stock"
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  orderItems      OrderItemConfig[]
+
+  @@index([category])
+  @@index([modelSeries])
+}
+
+// 2. ТАБЛИЦА ЗАКАЗОВ И СМЕТ ИЗ ОНЛАЙН-КОНФИГУРАТОРА
+model Order {
+  id              String         @id @default(cuid())
+  orderNumber     String         @unique // Например: "ABS-2026-0042"
+  
+  // Данные заказчика
+  clientName      String
+  clientPhone     String
+  clientEmail     String
+  clientCompany   String?
+  clientCity      String?
+  clientComment   String?
+
+  // Финансовые показатели
+  basePrice       Decimal        @db.Decimal(10, 2)
+  locksPrice      Decimal        @db.Decimal(10, 2)
+  extrasPrice     Decimal        @db.Decimal(10, 2)
+  totalPrice      Decimal        @db.Decimal(10, 2)
+  vatAmount       Decimal        @db.Decimal(10, 2) // В т.ч. НДС 20%
+
+  // Статус выполнения
+  status          String         @default("new") // "new", "in_progress", "kp_sent", "paid", "completed", "cancelled"
+  managerComment  String?
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  items           OrderItemConfig[]
+
+  @@index([status])
+  @@index([clientEmail])
+  @@index([createdAt])
+}
+
+// 3. ТАБЛИЦА СПЕЦИФИКАЦИИ КОНФИГУРАЦИИ ШКАФА В ЗАКАЗЕ
+model OrderItemConfig {
+  id              String         @id @default(cuid())
+  orderId         String
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId       String?
+  product         Product?       @relation(fields: [productId], references: [id])
+  
+  modelName       String         // "T-382L (2 яруса)"
+  columnsCount    Int            // Количество секций по ширине
+  tiersCount      Int            // Количество ярусов по высоте
+  totalCells      Int            // Всего ячеек (колонны * ярусы)
+  dimensions      String         // Габариты блока в сборе
+  lockType        String         // "Электронный RFID"
+  accessories     Json           // Список доп. опций в формате JSON
+  cellColors      Json           // Раскладка цветов дверей: {"0_0": "sun-yellow", "0_1": "sky-blue"}
+}

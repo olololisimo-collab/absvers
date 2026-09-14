@@ -1,0 +1,193 @@
+{
+  "version": 2,
+  "attachments": [
+    {
+      "sourceId": "a839d109-850f-4b03-aa29-dddd25e9c805",
+      "messageId": null,
+      "path": "attachments/promt_magazin_abs_lokery.md.docx",
+      "name": "promt_magazin_abs_lokery.md.docx",
+      "originalName": "promt_magazin_abs_lokery.md.docx",
+      "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 16903,
+      "sha256": "9b0a9448a73b4afc2125c560c87f7e2d913a821576cac9d5407b4945d5751ee6",
+      "createdAt": "2026-09-14T11:25:48.985Z"
+    },
+    {
+      "sourceId": "data-url:06c064f58ea087ed377723fd8908bf9e86157ae0beab809a30c4514a0b3ae1fa",
+      "messageId": null,
+      "path": "attachments/image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/jpeg",
+      "size": 59117,
+      "sha256": "06c064f58ea087ed377723fd8908bf9e86157ae0beab809a30c4514a0b3ae1fa",
+      "createdAt": "2026-09-14T11:36:30.955Z"
+    },
+    {
+      "sourceId": "data-url:ef4a9826077f79e61ba6443c88cfcb6edb954fb7e4b94f013af6b25ea4596ffd",
+      "messageId": null,
+      "path": "attachments/ef4a9826-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/jpeg",
+      "size": 39357,
+      "sha256": "ef4a9826077f79e61ba6443c88cfcb6edb954fb7e4b94f013af6b25ea4596ffd",
+      "createdAt": "2026-09-14T11:36:30.956Z"
+    },
+    {
+      "sourceId": "data-url:9c07cedee260e014b4737eda429ca95926494c377a6d5cea935d47338e5bdec1",
+      "messageId": null,
+      "path": "attachments/9c07cede-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/jpeg",
+      "size": 92184,
+      "sha256": "9c07cedee260e014b4737eda429ca95926494c377a6d5cea935d47338e5bdec1",
+      "createdAt": "2026-09-14T11:36:30.956Z"
+    },
+    {
+      "sourceId": "data-url:1881611cb56bf25b126029a843edca33c3194a9dcccfcf46a499e61c42a1843e",
+      "messageId": null,
+      "path": "attachments/1881611c-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/jpeg",
+      "size": 96889,
+      "sha256": "1881611cb56bf25b126029a843edca33c3194a9dcccfcf46a499e61c42a1843e",
+      "createdAt": "2026-09-14T11:36:30.957Z"
+    },
+    {
+      "sourceId": "data-url:3df6714f685ea7aabd2994a0fe718801052b221d30f6032220802b7546cb6c24",
+      "messageId": null,
+      "path": "attachments/3df6714f-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/jpeg",
+      "size": 66879,
+      "sha256": "3df6714f685ea7aabd2994a0fe718801052b221d30f6032220802b7546cb6c24",
+      "createdAt": "2026-09-14T11:36:30.958Z"
+    },
+    {
+      "sourceId": "data-url:aef0ea2bfe10f39422b9da5d84ba471e909e755a7dbfc5207e63e5bcab7370c2",
+      "messageId": null,
+      "path": "attachments/aef0ea2b-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/jpeg",
+      "size": 80168,
+      "sha256": "aef0ea2bfe10f39422b9da5d84ba471e909e755a7dbfc5207e63e5bcab7370c2",
+      "createdAt": "2026-09-14T11:36:30.958Z"
+    },
+    {
+      "sourceId": "data-url:14f9d6182447c73a5f6198465fb21afc4f64756189f06114450d45a24094bcb7",
+      "messageId": null,
+      "path": "attachments/14f9d618-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/jpeg",
+      "size": 84072,
+      "sha256": "14f9d6182447c73a5f6198465fb21afc4f64756189f06114450d45a24094bcb7",
+      "createdAt": "2026-09-14T11:36:30.959Z"
+    },
+    {
+      "sourceId": "data-url:d0de7b393469e0ebcc9edba4cfbc7b505f0b4541500f6e123b441f52d62ffa05",
+      "messageId": null,
+      "path": "attachments/d0de7b39-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 55781,
+      "sha256": "d0de7b393469e0ebcc9edba4cfbc7b505f0b4541500f6e123b441f52d62ffa05",
+      "createdAt": "2026-09-14T11:36:30.960Z"
+    },
+    {
+      "sourceId": "data-url:c66de1d6eff2a8927f3a6e45390dbdb617ef5e1da6ffefdc1976488b31d92aac",
+      "messageId": null,
+      "path": "attachments/c66de1d6-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 42771,
+      "sha256": "c66de1d6eff2a8927f3a6e45390dbdb617ef5e1da6ffefdc1976488b31d92aac",
+      "createdAt": "2026-09-14T11:36:30.960Z"
+    },
+    {
+      "sourceId": "data-url:4a083de559430cabc72a0c44297474ef44e6467d62c56f5804523c53bbf01039",
+      "messageId": null,
+      "path": "attachments/4a083de5-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 80764,
+      "sha256": "4a083de559430cabc72a0c44297474ef44e6467d62c56f5804523c53bbf01039",
+      "createdAt": "2026-09-14T11:36:30.961Z"
+    },
+    {
+      "sourceId": "data-url:5249e00f903e190b907fb4e685fbb5889d9262b70aa3c92fa48e172dbbdcfe9d",
+      "messageId": null,
+      "path": "attachments/5249e00f-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 70459,
+      "sha256": "5249e00f903e190b907fb4e685fbb5889d9262b70aa3c92fa48e172dbbdcfe9d",
+      "createdAt": "2026-09-14T11:36:30.962Z"
+    },
+    {
+      "sourceId": "data-url:03f76301946f0e4438ba2ca908ff007a6d19739fa250b453e813208b2e804252",
+      "messageId": null,
+      "path": "attachments/03f76301-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 82448,
+      "sha256": "03f76301946f0e4438ba2ca908ff007a6d19739fa250b453e813208b2e804252",
+      "createdAt": "2026-09-14T11:36:30.963Z"
+    },
+    {
+      "sourceId": "data-url:cdb1c21979583a97e279854307871f4fe7f90f54adc3aab64de047ae9a8d98b1",
+      "messageId": null,
+      "path": "attachments/cdb1c219-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 104200,
+      "sha256": "cdb1c21979583a97e279854307871f4fe7f90f54adc3aab64de047ae9a8d98b1",
+      "createdAt": "2026-09-14T11:36:30.964Z"
+    },
+    {
+      "sourceId": "data-url:448f49018af86c7b0266d781bc7f825278aeff5fc3531f94de9483c53e058bfd",
+      "messageId": null,
+      "path": "attachments/448f4901-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 159154,
+      "sha256": "448f49018af86c7b0266d781bc7f825278aeff5fc3531f94de9483c53e058bfd",
+      "createdAt": "2026-09-14T11:36:30.965Z"
+    },
+    {
+      "sourceId": "data-url:08dfa110546ec85a4347d7c0224f1546287425c86bd32042039499bc3cb94fa9",
+      "messageId": null,
+      "path": "attachments/08dfa110-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 171011,
+      "sha256": "08dfa110546ec85a4347d7c0224f1546287425c86bd32042039499bc3cb94fa9",
+      "createdAt": "2026-09-14T11:36:30.966Z"
+    },
+    {
+      "sourceId": "data-url:17eb2222bea6aebaf5c077cbcdc6057204fa29e4b548b9b600365437a73a8bb6",
+      "messageId": null,
+      "path": "attachments/17eb2222-image",
+      "name": "image",
+      "originalName": "image",
+      "mime": "image/png",
+      "size": 165486,
+      "sha256": "17eb2222bea6aebaf5c077cbcdc6057204fa29e4b548b9b600365437a73a8bb6",
+      "createdAt": "2026-09-14T11:36:30.967Z"
+    }
+  ],
+  "updatedAt": "2026-09-14T11:36:30.967Z"
+}

@@ -21,7 +21,8 @@ import {
   TrendingUp,
   PackageCheck,
   CircleDollarSign,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck
 } from "lucide-react";
 
 // --- ТИПЫ ДАННЫХ ЗАЯВКИ ---

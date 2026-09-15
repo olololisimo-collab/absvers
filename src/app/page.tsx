@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { 
   ShieldCheck, 
@@ -40,21 +40,47 @@ export default function HomePage() {
   const { user, isLoggedIn, isAuthModalOpen, openAuthModal, closeAuthModal, logout } = useAuth();
   const { isAdminAuthenticated, logoutAdmin } = useAdminAuth();
   
-  // Shopping cart state
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: "cart-init-1",
-      modelId: "T-382L",
-      name: "Модульный шкаф absvers Т-382L (2 яруса)",
-      description: "Комплект 3 секции / 6 ячеек, цвет Синий/Серый, механический замок",
-      dimensions: "Ш1146 × Г500 × В1940 мм",
-      image: "/images/card_t382l_ruby_red.png",
-      price: 24800,
-      quantity: 1
+  // Shopping cart state with localStorage persistence
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("absvers_cart_items");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse cart items from storage", e);
+      }
     }
-  ]);
+    return [
+      {
+        id: "cart-init-1",
+        modelId: "T-382L",
+        name: "Модульный шкаф absvers Т-382L (2 яруса)",
+        description: "Комплект 3 секции / 6 ячеек, цвет Синий/Серый, механический замок",
+        dimensions: "Ш1146 × Г500 × В1940 мм",
+        image: "/images/card_t382l_ruby_red.png",
+        price: 24800,
+        quantity: 1
+      }
+    ];
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartToast, setCartToast] = useState<string | null>(null);
+
+  // Sync cart items to localStorage whenever cartItems changes
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("absvers_cart_items", JSON.stringify(cartItems));
+      }
+    } catch (e) {
+      console.error("Failed to save cart items to storage", e);
+    }
+  }, [cartItems]);
 
   // Cart operations
   const handleAddToCart = (item: CartItem) => {
@@ -67,6 +93,7 @@ export default function HomePage() {
     });
 
     setCartToast(`«${item.name}» добавлен в корзину`);
+    setIsCartOpen(true);
     setTimeout(() => {
       setCartToast(null);
     }, 3500);
@@ -672,7 +699,7 @@ export default function HomePage() {
               </div>
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-                <LockerConfigurator />
+                <LockerConfigurator onAddToCart={handleAddToCart} />
               </div>
             </div>
           </div>
@@ -742,6 +769,7 @@ export default function HomePage() {
         onClearCart={handleClearCart}
         onOpenCatalog={() => setActiveTab("catalog")}
         onOpenConfigurator={() => setActiveTab("configurator")}
+        onOrderPlaced={() => handleClearCart()}
       />
 
       {/* Footer */}

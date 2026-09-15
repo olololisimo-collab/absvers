@@ -116,6 +116,15 @@ export default function CartModal({
   }, [user, isOpen]);
 
   const [step, setStep] = useState<"cart" | "checkout" | "success">("cart");
+
+  // Reset step to 'cart' whenever cart modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setStep("cart");
+      setSubmitError("");
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [completedOrder, setCompletedOrder] = useState<any>(null);

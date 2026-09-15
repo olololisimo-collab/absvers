@@ -136,7 +136,11 @@ export const EXTRA_OPTIONS: ExtraOption[] = [
   { id: "base-plinth", name: "Влагозащитный цоколь-подставка", pricePerUnit: 1500, appliesPerCell: false, defaultChecked: true },
 ];
 
-export default function LockerConfigurator() {
+interface LockerConfiguratorProps {
+  onAddToCart?: (item: any) => void;
+}
+
+export default function LockerConfigurator({ onAddToCart }: LockerConfiguratorProps = {}) {
   const [selectedModelId, setSelectedModelId] = useState<LockerModelId>("T-382L");
   const [columnsCount, setColumnsCount] = useState<number>(3);
   const [activeColor, setActiveColor] = useState<string>("sky-blue");
@@ -777,14 +781,39 @@ export default function LockerConfigurator() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
               <button 
-                onClick={() => alert(`Конфигурация добавлена в корзину на сумму ${totalPrice.toLocaleString('ru-RU')} ₽`)}
-                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition transform active:scale-95"
+                onClick={() => {
+                  const item = {
+                    id: `custom-config-${Date.now()}`,
+                    modelId: activeModel.id,
+                    name: `3D-Сборка: ${activeModel.name} (${columnsCount} секц. / ${totalCells} яч.)`,
+                    description: `Габариты: ${totalWidth}×${totalHeight}×${totalDepth} мм, замок: ${lockOption.name}`,
+                    dimensions: `${totalWidth} × ${totalHeight} × ${totalDepth} мм`,
+                    lockType: lockOption.name,
+                    image: activeModel.id === "T-382XXL" ? "/images/card_t382xxl_royal_blue.png" : activeModel.id === "T-382M" ? "/images/card_t382m_grey_yellow_mix.png" : "/images/card_t382l_ruby_red.png",
+                    price: totalPrice,
+                    quantity: 1,
+                    isCustomConfig: true,
+                    configDetails: {
+                      columnsCount,
+                      tiersCount: activeModel.tiers,
+                      totalCells,
+                      colors: cellColors,
+                      extras: EXTRA_OPTIONS.filter(opt => selectedExtras[opt.id]).map(opt => opt.name)
+                    }
+                  };
+                  if (onAddToCart) {
+                    onAddToCart(item);
+                  } else {
+                    alert(`Конфигурация добавлена в корзину на сумму ${totalPrice.toLocaleString('ru-RU')} ₽`);
+                  }
+                }}
+                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition transform active:scale-95 cursor-pointer"
               >
                 <ShoppingCart className="w-4 h-4" /> В корзину
               </button>
               <button 
                 onClick={() => setIsEmailModalOpen(true)}
-                className="w-full py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm flex items-center justify-center gap-2 border border-slate-700 transition"
+                className="w-full py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm flex items-center justify-center gap-2 border border-slate-700 transition cursor-pointer"
               >
                 <Mail className="w-4 h-4 text-emerald-400" /> Отправить на Email
               </button>

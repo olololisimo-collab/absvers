@@ -731,9 +731,8 @@ export default function CustomerOrdersPanel({
                               <button
                                 onClick={() => {
                                   onRepeatOrder(order.items[0]);
-                                  alert(`Позиция «${order.items[0].name}» добавлена в корзину!`);
                                 }}
-                                className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1.5 transition"
+                                className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
                               >
                                 <RotateCcw className="w-3.5 h-3.5" />
                                 <span>Повторить заказ</span>

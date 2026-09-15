@@ -22,8 +22,8 @@ import {
 import { useAuth } from "../context/AuthContext";
 
 interface MobileNavigationProps {
-  activeTab: "catalog" | "configurator" | "admin" | "orders";
-  setActiveTab: (tab: "catalog" | "configurator" | "admin" | "orders") => void;
+  activeTab: "catalog" | "configurator" | "admin" | "orders" | "cabinet";
+  setActiveTab: (tab: "catalog" | "configurator" | "admin" | "orders" | "cabinet") => void;
   cartCount: number;
   onOpenCart: () => void;
 }
@@ -64,7 +64,7 @@ export default function MobileNavigation({
           <button
             onClick={() => {
               if (isLoggedIn) {
-                setActiveTab("orders");
+                setActiveTab("cabinet");
               } else {
                 openAuthModal();
               }
@@ -147,17 +147,21 @@ export default function MobileNavigation({
           <button
             onClick={() => {
               if (isLoggedIn) {
-                setActiveTab("orders");
+                setActiveTab("cabinet");
               } else {
                 openAuthModal();
               }
             }}
             className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
-              isLoggedIn ? "text-[#1B4965] font-bold" : "text-slate-500 hover:text-slate-800"
+              activeTab === "cabinet" 
+                ? "text-[#1B4965] font-bold" 
+                : isLoggedIn 
+                  ? "text-emerald-700" 
+                  : "text-slate-500 hover:text-slate-800"
             }`}
           >
             {isLoggedIn ? (
-              <UserCheck className="w-5 h-5 text-emerald-600 stroke-[2.5px]" />
+              <UserCheck className={`w-5 h-5 ${activeTab === "cabinet" ? "text-[#1B4965] stroke-[2.5px]" : "text-emerald-600"}`} />
             ) : (
               <LogIn className="w-5 h-5" />
             )}
@@ -239,6 +243,21 @@ export default function MobileNavigation({
 
               {/* Навигационные ссылки */}
               <div className="py-4 space-y-1">
+                {isLoggedIn && (
+                  <button
+                    onClick={() => {
+                      setActiveTab("cabinet");
+                      setIsDrawerOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
+                      activeTab === "cabinet" ? "bg-emerald-50 text-emerald-800 font-bold" : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <UserCheck className="w-5 h-5 text-emerald-600" />
+                    <span>Личный кабинет и заказы</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => {
                     setActiveTab("catalog");

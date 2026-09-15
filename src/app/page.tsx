@@ -28,13 +28,14 @@ import {
 import LockerConfigurator from "./components/LockerConfigurator";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminOrdersPanel from "./components/AdminOrdersPanel";
+import CustomerOrdersPanel from "./components/CustomerOrdersPanel";
 import CartModal, { CartItem } from "./components/CartModal";
 import MobileNavigation from "./components/MobileNavigation";
 import AuthModal from "./components/AuthModal";
 import { useAuth } from "./context/AuthContext";
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<"catalog" | "configurator" | "admin" | "orders">("catalog");
+  const [activeTab, setActiveTab] = useState<"catalog" | "configurator" | "admin" | "orders" | "cabinet">("catalog");
   const { user, isLoggedIn, isAuthModalOpen, openAuthModal, closeAuthModal, logout } = useAuth();
   
   // Shopping cart state
@@ -193,11 +194,17 @@ export default function HomePage() {
             {isLoggedIn && user ? (
               <div className="flex items-center gap-2 pl-2 border-l border-white/20">
                 <button
-                  onClick={() => setActiveTab("orders")}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition text-left"
-                  title="Перейти в заказы"
+                  onClick={() => setActiveTab("cabinet")}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition text-left ${
+                    activeTab === "cabinet"
+                      ? "bg-[#8BC34A] text-slate-950 border-[#8BC34A] font-bold shadow-sm"
+                      : "bg-white/10 hover:bg-white/20 border-white/15 text-white"
+                  }`}
+                  title="Личный кабинет покупателя"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-[#8BC34A] text-slate-950 flex items-center justify-center font-bold text-xs">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                    activeTab === "cabinet" ? "bg-slate-900 text-[#8BC34A]" : "bg-[#8BC34A] text-slate-950"
+                  }`}>
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="hidden xl:block">
@@ -683,6 +690,37 @@ export default function HomePage() {
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
                 <AdminOrdersPanel />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "cabinet" && (
+          <div className="py-8 bg-slate-100" id="section-cabinet">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1B4965]">
+                    Личный кабинет покупателя
+                  </h1>
+                  <p className="text-sm text-slate-600 mt-1">
+                    История ваших заказов, отслеживание статусов сборки и доставки, скачивание КП и счетов.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab("catalog")}
+                  className="text-xs font-semibold px-3 py-2 bg-white rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  ← В магазин
+                </button>
+              </div>
+
+              <div>
+                <CustomerOrdersPanel 
+                  onOpenCatalog={() => setActiveTab("catalog")}
+                  onOpenConfigurator={() => setActiveTab("configurator")}
+                  onRepeatOrder={handleAddToCart}
+                />
               </div>
             </div>
           </div>

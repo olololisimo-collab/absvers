@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   ShoppingCart, 
   Trash2, 
@@ -18,10 +18,11 @@ import {
   User, 
   Phone, 
   Mail, 
-  Loader2,
-  FileSpreadsheet,
+  Loader2, 
+  FileSpreadsheet, 
   Package
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export interface CartItem {
   id: string;
@@ -66,6 +67,8 @@ export default function CartModal({
   onOpenConfigurator,
   onOrderPlaced
 }: CartModalProps) {
+  const { user, isLoggedIn } = useAuth();
+
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; percent: number } | null>(null);
@@ -86,6 +89,22 @@ export default function CartModal({
     address: "",
     comment: ""
   });
+
+  // Pre-fill form from authenticated user profile
+  useEffect(() => {
+    if (user && isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || user.name || "",
+        phone: prev.phone || user.phone || "",
+        email: prev.email || user.email || "",
+        company: prev.company || user.companyName || "",
+        inn: prev.inn || user.inn || "",
+        city: prev.city || user.city || "",
+        address: prev.address || user.address || "",
+      }));
+    }
+  }, [user, isOpen]);
 
   const [step, setStep] = useState<"cart" | "checkout" | "success">("cart");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -182,8 +201,53 @@ export default function CartModal({
       const data = await res.json();
 
       if (res.ok && data.success) {
+        const orderNumber = data.orderNumber || `ABS-${Math.floor(100000 + Math.random() * 900000)}`;
+        const nowFormatted = new Date().toLocaleString("ru-RU", { 
+          year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" 
+        });
+
+        const newStoreOrder = {
+          id: `ord-${Date.now()}`,
+          orderNumber,
+          createdAt: nowFormatted,
+          client: {
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            company: formData.company,
+            inn: formData.inn,
+            city: formData.city,
+            address: formData.address,
+          },
+          items: cartItems,
+          pricing: {
+            subtotal,
+            discountAmount,
+            deliveryCost,
+            totalAmount,
+            vatAmount,
+            promoCode: appliedPromo?.code
+          },
+          status: "new",
+          deliveryMethod,
+          paymentMethod,
+          managerComment: formData.comment ? `Пожелания: ${formData.comment}` : undefined
+        };
+
+        // Persist to shared localStorage store so CustomerOrdersPanel and AdminOrdersPanel see it immediately
+        try {
+          if (typeof window !== "undefined") {
+            const existingOrdersStr = localStorage.getItem("abs_store_orders");
+            const existingOrders = existingOrdersStr ? JSON.parse(existingOrdersStr) : [];
+            const updated = [newStoreOrder, ...existingOrders];
+            localStorage.setItem("abs_store_orders", JSON.stringify(updated));
+          }
+        } catch (storageErr) {
+          console.error("Ошибка сохранения заказа в локальное хранилище:", storageErr);
+        }
+
         const orderData = {
-          orderNumber: data.orderNumber || `ABS-${Math.floor(100000 + Math.random() * 900000)}`,
+          orderNumber,
           date: new Date().toLocaleDateString("ru-RU"),
           total: totalAmount,
           itemsCount: totalItemsCount,

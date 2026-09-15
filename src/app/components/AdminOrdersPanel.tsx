@@ -177,6 +177,56 @@ export default function AdminOrdersPanel() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
 
+  // Sync with shared localStorage store
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("abs_store_orders");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Normalize any cart order shape to OrderItem
+            const normalized: OrderItem[] = parsed.map((ord: any) => ({
+              id: ord.id || `ord-${Math.random()}`,
+              orderNumber: ord.orderNumber || "ABS-2026-0000",
+              createdAt: ord.createdAt || new Date().toLocaleDateString("ru-RU"),
+              client: {
+                name: ord.client?.name || "Покупатель",
+                phone: ord.client?.phone || "+7 (000) 000-00-00",
+                email: ord.client?.email || "customer@absvers.ru",
+                company: ord.client?.company || undefined,
+                city: ord.client?.city || undefined,
+              },
+              configuration: ord.configuration || {
+                modelId: ord.items?.[0]?.modelId || "T-382L",
+                modelName: ord.items?.[0]?.name || "Модульный шкаф absvers",
+                columnsCount: ord.items?.[0]?.configDetails?.columnsCount || 3,
+                tiersCount: ord.items?.[0]?.configDetails?.tiersCount || 2,
+                totalCells: ord.items?.[0]?.configDetails?.totalCells || 6,
+                dimensions: ord.items?.[0]?.dimensions || "1146 × 1940 × 500 мм",
+                lockType: ord.items?.[0]?.lockType || "Механический замок",
+                accessories: ["Влагозащитный цоколь"],
+                cellColorsBreakdown: {},
+              },
+              pricing: {
+                basePrice: ord.pricing?.subtotal || ord.pricing?.totalPrice || ord.total || 0,
+                locksPrice: ord.pricing?.locksPrice || 0,
+                extrasPrice: ord.pricing?.deliveryCost || 0,
+                totalPrice: ord.pricing?.totalAmount || ord.pricing?.totalPrice || ord.total || 0,
+                vatAmount: ord.pricing?.vatAmount || 0,
+              },
+              status: (ord.status as OrderStatus) || "new",
+              managerComment: ord.managerComment || undefined,
+            }));
+            setOrders(normalized);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Ошибка чтения общих заказов:", e);
+    }
+  }, []);
+
   // Фильтрация и поиск
   const filteredOrders = useMemo(() => {
     return orders.filter((ord) => {
@@ -203,11 +253,19 @@ export default function AdminOrdersPanel() {
     return { totalRevenue, newCount, inWorkCount, totalPotential };
   }, [orders]);
 
-  // Изменение статуса заказа
+  // Изменение статуса заказа с сохранением в localStorage
   const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((ord) => (ord.id === orderId ? { ...ord, status: newStatus } : ord))
-    );
+    setOrders((prev) => {
+      const updated = prev.map((ord) => (ord.id === orderId ? { ...ord, status: newStatus } : ord));
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("abs_store_orders", JSON.stringify(updated));
+        }
+      } catch (e) {
+        console.error("Ошибка сохранения обновленного статуса:", e);
+      }
+      return updated;
+    });
     if (selectedOrder && selectedOrder.id === orderId) {
       setSelectedOrder((prev) => (prev ? { ...prev, status: newStatus } : null));
     }

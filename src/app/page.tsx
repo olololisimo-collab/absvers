@@ -20,16 +20,22 @@ import {
   Sparkles,
   UserCheck,
   ShoppingCart,
-  Plus
+  Plus,
+  LogIn,
+  LogOut,
+  User
 } from "lucide-react";
 import LockerConfigurator from "./components/LockerConfigurator";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminOrdersPanel from "./components/AdminOrdersPanel";
 import CartModal, { CartItem } from "./components/CartModal";
 import MobileNavigation from "./components/MobileNavigation";
+import AuthModal from "./components/AuthModal";
+import { useAuth } from "./context/AuthContext";
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<"catalog" | "configurator" | "admin" | "orders">("catalog");
+  const { user, isLoggedIn, isAuthModalOpen, openAuthModal, closeAuthModal, logout } = useAuth();
   
   // Shopping cart state
   const [cartItems, setCartItems] = useState<CartItem[]>([
@@ -122,7 +128,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <nav className="flex items-center gap-2 sm:gap-4">
+          <nav className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setActiveTab("catalog")}
               className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition ${
@@ -151,9 +157,10 @@ export default function HomePage() {
                   ? "bg-amber-600 text-white shadow-sm"
                   : "text-slate-300 hover:text-white hover:bg-white/10"
               }`}
+              id="btn-nav-orders"
             >
               <FileSpreadsheet className="w-4 h-4" />
-              <span className="hidden md:inline">Заявки и КП</span>
+              <span className="hidden lg:inline">Заявки и КП</span>
             </button>
             <button
               onClick={() => setActiveTab("admin")}
@@ -164,7 +171,7 @@ export default function HomePage() {
               }`}
             >
               <Settings className="w-4 h-4" />
-              <span className="hidden md:inline">Склад и цены</span>
+              <span className="hidden lg:inline">Склад и цены</span>
             </button>
 
             {/* Cart Header Button */}
@@ -181,6 +188,40 @@ export default function HomePage() {
                 </span>
               )}
             </button>
+
+            {/* Auth / Account Button */}
+            {isLoggedIn && user ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-white/20">
+                <button
+                  onClick={() => setActiveTab("orders")}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition text-left"
+                  title="Перейти в заказы"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-[#8BC34A] text-slate-950 flex items-center justify-center font-bold text-xs">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="hidden xl:block">
+                    <p className="text-xs font-bold leading-tight truncate max-w-[120px]">{user.name}</p>
+                    <p className="text-[10px] text-emerald-300 leading-tight">{user.phone}</p>
+                  </div>
+                </button>
+                <button
+                  onClick={logout}
+                  className="p-2 text-slate-300 hover:text-rose-400 hover:bg-white/10 rounded-lg transition"
+                  title="Выйти из аккаунта"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={openAuthModal}
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm transition border border-white/20 flex items-center gap-2"
+              >
+                <LogIn className="w-4 h-4 text-[#8BC34A]" />
+                <span>Войти</span>
+              </button>
+            )}
           </nav>
         </div>
       </header>
@@ -621,7 +662,7 @@ export default function HomePage() {
         )}
 
         {activeTab === "orders" && (
-          <div className="py-8 bg-slate-100">
+          <div className="py-8 bg-slate-100" id="section-orders">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="mb-6 flex items-center justify-between">
                 <div>
@@ -634,7 +675,7 @@ export default function HomePage() {
                 </div>
                 <button
                   onClick={() => setActiveTab("catalog")}
-                  className="text-xs font-semibold px-3 py-2 bg-white rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
+                  className="text-xs font-semibold px-3 py-2 bg-white rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
                 >
                   ← В магазин
                 </button>
@@ -674,6 +715,12 @@ export default function HomePage() {
           </div>
         )}
       </main>
+
+      {/* Auth Modal Popup */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+      />
 
       {/* Cart Modal / Checkout Drawer */}
       <CartModal

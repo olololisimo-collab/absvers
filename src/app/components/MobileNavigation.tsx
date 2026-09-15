@@ -12,8 +12,14 @@ import {
   ShieldCheck, 
   Truck,
   FileSpreadsheet,
-  Settings
+  Settings,
+  UserCheck,
+  LogIn,
+  LogOut,
+  Building2,
+  FolderHeart
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 interface MobileNavigationProps {
   activeTab: "catalog" | "configurator" | "admin" | "orders";
@@ -29,6 +35,7 @@ export default function MobileNavigation({
   onOpenCart,
 }: MobileNavigationProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { user, isLoggedIn, openAuthModal, logout } = useAuth();
 
   return (
     <>
@@ -52,13 +59,34 @@ export default function MobileNavigation({
           <span>absvers</span>
         </div>
 
-        <a
-          href="tel:+78000000000"
-          className="p-2 -mr-2 text-[#8BC34A] hover:text-white transition"
-          aria-label="Позвонить в отдел продаж"
-        >
-          <PhoneCall className="w-5 h-5" />
-        </a>
+        <div className="flex items-center gap-1">
+          {/* Quick Profile / Login button */}
+          <button
+            onClick={() => {
+              if (isLoggedIn) {
+                setActiveTab("orders");
+              } else {
+                openAuthModal();
+              }
+            }}
+            className="p-2 text-slate-200 hover:text-[#8BC34A] transition"
+            aria-label={isLoggedIn ? "Личный кабинет" : "Войти"}
+          >
+            {isLoggedIn ? (
+              <UserCheck className="w-5 h-5 text-[#8BC34A]" />
+            ) : (
+              <LogIn className="w-5 h-5" />
+            )}
+          </button>
+
+          <a
+            href="tel:+78000000000"
+            className="p-2 -mr-2 text-[#8BC34A] hover:text-white transition"
+            aria-label="Позвонить в отдел продаж"
+          >
+            <PhoneCall className="w-5 h-5" />
+          </a>
+        </div>
       </div>
 
       {/* 2. Нижний таб-бар (Bottom Bar) для большого пальца */}
@@ -67,7 +95,7 @@ export default function MobileNavigation({
           {/* Вкладка Каталог */}
           <button
             onClick={() => setActiveTab("catalog")}
-            className={`flex flex-col items-center justify-center w-16 py-1 rounded-xl transition ${
+            className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
               activeTab === "catalog" ? "text-[#1B4965] font-bold" : "text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -78,7 +106,7 @@ export default function MobileNavigation({
           {/* Вкладка 3D-Конфигуратор */}
           <button
             onClick={() => setActiveTab("configurator")}
-            className={`flex flex-col items-center justify-center w-16 py-1 rounded-xl transition ${
+            className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
               activeTab === "configurator" ? "text-[#1B4965] font-bold" : "text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -91,7 +119,7 @@ export default function MobileNavigation({
           {/* Кнопка Корзины с бейджем */}
           <button
             onClick={onOpenCart}
-            className="flex flex-col items-center justify-center w-16 py-1 rounded-xl relative text-slate-500 hover:text-slate-800 transition"
+            className="flex flex-col items-center justify-center w-14 py-1 rounded-xl relative text-slate-500 hover:text-slate-800 transition"
           >
             <div className="relative">
               <ShoppingBag className="w-5 h-5" />
@@ -107,12 +135,35 @@ export default function MobileNavigation({
           {/* Заявки и КП */}
           <button
             onClick={() => setActiveTab("orders")}
-            className={`flex flex-col items-center justify-center w-16 py-1 rounded-xl transition ${
+            className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
               activeTab === "orders" ? "text-amber-600 font-bold" : "text-slate-500 hover:text-slate-800"
             }`}
           >
             <FileSpreadsheet className={`w-5 h-5 ${activeTab === "orders" ? "stroke-[2.5px] text-amber-600" : ""}`} />
             <span className="text-[10px] mt-1">Заявки</span>
+          </button>
+
+          {/* Профиль / Вход */}
+          <button
+            onClick={() => {
+              if (isLoggedIn) {
+                setActiveTab("orders");
+              } else {
+                openAuthModal();
+              }
+            }}
+            className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
+              isLoggedIn ? "text-[#1B4965] font-bold" : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            {isLoggedIn ? (
+              <UserCheck className="w-5 h-5 text-emerald-600 stroke-[2.5px]" />
+            ) : (
+              <LogIn className="w-5 h-5" />
+            )}
+            <span className="text-[10px] mt-1 truncate max-w-[56px]">
+              {isLoggedIn ? (user?.name?.split(" ")[0] || "Кабинет") : "Войти"}
+            </span>
           </button>
         </div>
       </nav>
@@ -125,7 +176,7 @@ export default function MobileNavigation({
             onClick={() => setIsDrawerOpen(false)}
           />
 
-          <div className="relative w-[80%] max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between p-6 z-10 animate-slide-in">
+          <div className="relative w-[80%] max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between p-6 z-10 animate-slide-in overflow-y-auto">
             <div>
               <div className="flex items-center justify-between pb-5 border-b border-slate-100">
                 <div className="flex items-center gap-2">
@@ -140,6 +191,50 @@ export default function MobileNavigation({
                 >
                   <X className="w-6 h-6" />
                 </button>
+              </div>
+
+              {/* Блок пользователя в Drawer */}
+              <div className="py-4 border-b border-slate-100">
+                {isLoggedIn && user ? (
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-[#1B4965] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
+                        <p className="text-xs text-slate-500 truncate">{user.phone}</p>
+                        {user.type === "company" && user.companyName && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5">
+                            <Building2 className="w-3 h-3" />
+                            {user.companyName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsDrawerOpen(false);
+                      }}
+                      className="mt-3 w-full py-1.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Выйти из аккаунта</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsDrawerOpen(false);
+                      openAuthModal();
+                    }}
+                    className="w-full py-2.5 px-4 bg-[#8BC34A] text-slate-950 font-black text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 hover:bg-[#7CB342] transition"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>Войти в личный кабинет</span>
+                  </button>
+                )}
               </div>
 
               {/* Навигационные ссылки */}

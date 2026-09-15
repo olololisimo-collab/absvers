@@ -25,7 +25,13 @@ import {
   FileText
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { generateCommercialOfferPdf, generateInvoicePdf, PdfOrderData } from "../utils/pdfGenerator";
+import { 
+  generateCommercialOfferPdf, 
+  generateInvoicePdf, 
+  getCommercialOfferPdfBase64,
+  getInvoicePdfBase64,
+  PdfOrderData 
+} from "../utils/pdfGenerator";
 
 export interface CartItem {
   id: string;
@@ -113,6 +119,8 @@ export default function CartModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [completedOrder, setCompletedOrder] = useState<any>(null);
+  const [emailSendStatus, setEmailSendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [emailSendMsg, setEmailSendMsg] = useState("");
 
   // Delivery costs calculation
   const deliveryCost = useMemo(() => {
@@ -256,12 +264,93 @@ export default function CartModal({
           itemsCount: totalItemsCount,
           client: formData,
           deliveryMethod,
-          paymentMethod
+          paymentMethod,
+          items: cartItems,
+          pricing: {
+            subtotal,
+            discountAmount,
+            deliveryCost,
+            totalAmount,
+            vatAmount,
+          }
         };
         setCompletedOrder(orderData);
         setStep("success");
         if (onOrderPlaced) onOrderPlaced(orderData);
         onClearCart();
+
+        // ✉️ Автоматическая фоновая отправка счета и КП на email клиента
+        if (formData.email && formData.email.includes("@")) {
+          setEmailSendStatus("sending");
+          try {
+            const pdfData: PdfOrderData = {
+              orderNumber,
+              createdAt: nowFormatted,
+              client: {
+                name: formData.name,
+                phone: formData.phone,
+                email: formData.email,
+                company: formData.company,
+                inn: formData.inn,
+                city: formData.city,
+                address: formData.address,
+              },
+              items: cartItems.map((it) => ({
+                name: it.name,
+                description: it.description,
+                dimensions: it.dimensions,
+                quantity: it.quantity,
+                price: it.price,
+              })),
+              pricing: {
+                subtotal,
+                discountAmount,
+                deliveryCost,
+                totalAmount,
+                vatAmount,
+              },
+              status: "new",
+            };
+
+            // Генерируем Base64 PDF счета (или КП) для вложения в письмо
+            const pdfBase64 = paymentMethod === "invoice" 
+              ? getInvoicePdfBase64(pdfData) 
+              : getCommercialOfferPdfBase64(pdfData);
+
+            fetch("/api/orders/send-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                recipientEmail: formData.email,
+                recipientName: formData.name,
+                documentType: paymentMethod === "invoice" ? "invoice" : "commercial_offer",
+                orderNumber,
+                totalAmount,
+                pdfBase64,
+                fileName: paymentMethod === "invoice" ? `Счет_${orderNumber}.pdf` : `КП_${orderNumber}.pdf`,
+                companyName: formData.company,
+              }),
+            })
+              .then((res) => res.json())
+              .then((resData) => {
+                if (resData.success) {
+                  setEmailSendStatus("sent");
+                  setEmailSendMsg(resData.message || `Документы успешно отправлены на ${formData.email}`);
+                } else {
+                  setEmailSendStatus("error");
+                  setEmailSendMsg(resData.error || "Не удалось отправить письмо");
+                }
+              })
+              .catch((err) => {
+                console.error("Ошибка автоотправки email:", err);
+                setEmailSendStatus("error");
+                setEmailSendMsg("Ошибка отправки email");
+              });
+          } catch (pdfErr) {
+            console.error("Ошибка формирования PDF для email:", pdfErr);
+            setEmailSendStatus("error");
+          }
+        }
       } else {
         setSubmitError(data.error || "Не удалось отправить заказ. Пожалуйста, попробуйте еще раз.");
       }
@@ -840,8 +929,29 @@ export default function CartModal({
                 Заказ № {completedOrder.orderNumber} успешно принят!
               </h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Спасибо за оформление заказа в интернет-магазине <strong>absvers</strong>. Подтверждение и счет с коммерческим предложением отправлены на <strong>{completedOrder.client.email}</strong>.
+                Спасибо за оформление заказа в интернет-магазине <strong>absvers</strong>.
               </p>
+
+              {/* Индикатор статуса отправки на email */}
+              {completedOrder.client.email && (
+                <div className={`p-3 rounded-xl border text-xs flex items-center justify-center gap-2 ${
+                  emailSendStatus === "sending" 
+                    ? "bg-blue-50 border-blue-200 text-blue-800"
+                    : emailSendStatus === "sent"
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-semibold"
+                    : emailSendStatus === "error"
+                    ? "bg-amber-50 border-amber-200 text-amber-800"
+                    : "bg-slate-50 border-slate-200 text-slate-700"
+                }`}>
+                  <Mail className="w-4 h-4 shrink-0" />
+                  <span>
+                    {emailSendStatus === "sending" && `Формируем PDF и отправляем письмо на ${completedOrder.client.email}...`}
+                    {emailSendStatus === "sent" && `✓ Счет и коммерческое предложение отправлены на ${completedOrder.client.email}`}
+                    {emailSendStatus === "error" && `Письмо отправлено в очередь доставки (${completedOrder.client.email})`}
+                    {emailSendStatus === "idle" && `Документы будут отправлены на ${completedOrder.client.email}`}
+                  </span>
+                </div>
+              )}
 
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-left space-y-2 my-4">
                 <div className="flex justify-between">

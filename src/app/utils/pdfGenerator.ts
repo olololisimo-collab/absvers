@@ -54,9 +54,9 @@ export interface PdfOrderData {
 }
 
 /**
- * 1. Генерация Коммерческого Предложения (КП) в формате PDF
+ * 1. Создание документа Коммерческого Предложения (КП)
  */
-export function generateCommercialOfferPdf(order: PdfOrderData) {
+export function createCommercialOfferPdfDoc(order: PdfOrderData): jsPDF {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -272,13 +272,23 @@ export function generateCommercialOfferPdf(order: PdfOrderData) {
   doc.text("Руководитель направления ABSVERS: ______________ / Смирнов Д. В. /", 14, pageHeight - 8);
   doc.text(`Документ сформирован автоматически: ${new Date().toLocaleString("ru-RU")}`, pageWidth - 14, pageHeight - 8, { align: "right" });
 
+  return doc;
+}
+
+export function generateCommercialOfferPdf(order: PdfOrderData) {
+  const doc = createCommercialOfferPdfDoc(order);
   doc.save(`КП_absvers_${order.orderNumber}.pdf`);
 }
 
+export function getCommercialOfferPdfBase64(order: PdfOrderData): string {
+  const doc = createCommercialOfferPdfDoc(order);
+  return doc.output("datauristring");
+}
+
 /**
- * 2. Генерация Официального Счета на оплату (B2B Счет с НДС 20%)
+ * 2. Создание документа Официального Счета на оплату (B2B Счет с НДС 20%)
  */
-export function generateInvoicePdf(order: PdfOrderData) {
+export function createInvoicePdfDoc(order: PdfOrderData): jsPDF {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -486,13 +496,23 @@ export function generateInvoicePdf(order: PdfOrderData) {
   doc.setFontSize(7);
   doc.text("ДЛЯ ДОКУМЕНТОВ", pageWidth - 37, signY + 18, { align: "center" });
 
+  return doc;
+}
+
+export function generateInvoicePdf(order: PdfOrderData) {
+  const doc = createInvoicePdfDoc(order);
   doc.save(`Счет_на_оплату_${order.orderNumber}.pdf`);
+}
+
+export function getInvoicePdfBase64(order: PdfOrderData): string {
+  const doc = createInvoicePdfDoc(order);
+  return doc.output("datauristring");
 }
 
 /**
  * 3. Генерация PDF для Конфигуратора (Смета и чертеж 3D-проекта)
  */
-export function generateConfiguratorSpecPdf(configData: {
+export function buildConfiguratorOrderData(configData: {
   modelName: string;
   columnsCount: number;
   tiersCount: number;
@@ -503,10 +523,10 @@ export function generateConfiguratorSpecPdf(configData: {
   totalPrice: number;
   vatAmount: number;
   client?: PdfClientInfo;
-}) {
+}): PdfOrderData {
   const orderNumber = `CFG-${Math.floor(1000 + Math.random() * 9000)}`;
 
-  const orderData: PdfOrderData = {
+  return {
     orderNumber,
     createdAt: new Date().toLocaleDateString("ru-RU"),
     client: configData.client || {
@@ -529,8 +549,38 @@ export function generateConfiguratorSpecPdf(configData: {
       deliveryCost: 0,
     },
   };
+}
 
+export function generateConfiguratorSpecPdf(configData: {
+  modelName: string;
+  columnsCount: number;
+  tiersCount: number;
+  totalCells: number;
+  dimensions: string;
+  lockType: string;
+  accessories: string[];
+  totalPrice: number;
+  vatAmount: number;
+  client?: PdfClientInfo;
+}) {
+  const orderData = buildConfiguratorOrderData(configData);
   generateCommercialOfferPdf(orderData);
+}
+
+export function getConfiguratorSpecPdfBase64(configData: {
+  modelName: string;
+  columnsCount: number;
+  tiersCount: number;
+  totalCells: number;
+  dimensions: string;
+  lockType: string;
+  accessories: string[];
+  totalPrice: number;
+  vatAmount: number;
+  client?: PdfClientInfo;
+}): string {
+  const orderData = buildConfiguratorOrderData(configData);
+  return getCommercialOfferPdfBase64(orderData);
 }
 
 /**

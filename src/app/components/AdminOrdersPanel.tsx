@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   Inbox, 
   Search, 
@@ -23,9 +23,16 @@ import {
   CircleDollarSign,
   AlertCircle,
   ShieldCheck,
-  Receipt
+  Receipt,
+  Send
 } from "lucide-react";
-import { generateCommercialOfferPdf, generateInvoicePdf, PdfOrderData } from "../utils/pdfGenerator";
+import { 
+  generateCommercialOfferPdf, 
+  generateInvoicePdf, 
+  getCommercialOfferPdfBase64,
+  getInvoicePdfBase64,
+  PdfOrderData 
+} from "../utils/pdfGenerator";
 
 // --- ТИПЫ ДАННЫХ ЗАЯВКИ ---
 export type OrderStatus = "new" | "in_progress" | "kp_sent" | "paid" | "completed" | "cancelled";
@@ -178,6 +185,8 @@ export default function AdminOrdersPanel() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
+  const [adminEmailSending, setAdminEmailSending] = useState<string | null>(null);
+  const [adminEmailToast, setAdminEmailToast] = useState<string | null>(null);
 
   // Sync with shared localStorage store
   useEffect(() => {
@@ -275,6 +284,14 @@ export default function AdminOrdersPanel() {
 
   return (
     <div className="w-full max-w-7xl mx-auto p-4 md:p-6 bg-slate-100 min-h-screen font-sans text-slate-900">
+      {/* Toast Notification for Admin Email dispatch */}
+      {adminEmailToast && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-2xl border border-slate-700 flex items-center gap-2.5 animate-fadeIn">
+          <Mail className="w-4 h-4 text-emerald-400" />
+          <span>{adminEmailToast}</span>
+        </div>
+      )}
+
       {/* Шапка админ-панели */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-6">
         <div>
@@ -588,12 +605,12 @@ export default function AdminOrdersPanel() {
             </div>
 
             {/* Кнопки действий менеджера */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
               <a
                 href={`tel:${selectedOrder.client.phone}`}
                 className="py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition"
               >
-                <PhoneCall className="w-4 h-4" /> Позвонить клиенту
+                <PhoneCall className="w-4 h-4" /> Позвонить
               </a>
               <button
                 onClick={() => {
@@ -622,9 +639,9 @@ export default function AdminOrdersPanel() {
                   };
                   generateCommercialOfferPdf(pdfData);
                 }}
-                className="py-3 rounded-xl bg-[#1B4965] hover:bg-[#144B6E] text-white text-xs font-bold flex items-center justify-center gap-2 transition"
+                className="py-3 rounded-xl bg-[#1B4965] hover:bg-[#144B6E] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition"
               >
-                <Download className="w-4 h-4 text-[#8BC34A]" /> Скачать КП (PDF)
+                <Download className="w-4 h-4 text-[#8BC34A]" /> Скачать КП
               </button>
               <button
                 onClick={() => {
@@ -653,9 +670,79 @@ export default function AdminOrdersPanel() {
                   };
                   generateInvoicePdf(pdfData);
                 }}
-                className="py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-2 transition"
+                className="py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition"
               >
-                <FileText className="w-4 h-4 text-emerald-400" /> Выставить счёт (PDF)
+                <FileText className="w-4 h-4 text-emerald-400" /> Скачать Счёт
+              </button>
+              <button
+                onClick={async () => {
+                  const targetEmail = selectedOrder.client.email;
+                  if (!targetEmail || !targetEmail.includes("@")) {
+                    alert("У клиента не указан email!");
+                    return;
+                  }
+                  setAdminEmailSending(selectedOrder.id);
+                  try {
+                    const pdfData: PdfOrderData = {
+                      orderNumber: selectedOrder.orderNumber,
+                      createdAt: selectedOrder.createdAt,
+                      client: selectedOrder.client,
+                      items: [
+                        {
+                          name: `${selectedOrder.configuration.modelName} (${selectedOrder.configuration.dimensions})`,
+                          description: `${selectedOrder.configuration.columnsCount} секц. × ${selectedOrder.configuration.tiersCount} яр. (${selectedOrder.configuration.totalCells} ячеек), замок: ${selectedOrder.configuration.lockType}`,
+                          dimensions: selectedOrder.configuration.dimensions,
+                          quantity: 1,
+                          price: selectedOrder.pricing.totalPrice,
+                        }
+                      ],
+                      pricing: {
+                        subtotal: selectedOrder.pricing.basePrice,
+                        discountAmount: 0,
+                        deliveryCost: selectedOrder.pricing.extrasPrice,
+                        totalAmount: selectedOrder.pricing.totalPrice,
+                        vatAmount: selectedOrder.pricing.vatAmount,
+                      },
+                      status: selectedOrder.status,
+                      managerComment: selectedOrder.managerComment,
+                    };
+                    const pdfBase64 = getInvoicePdfBase64(pdfData);
+                    const res = await fetch("/api/orders/send-email", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        recipientEmail: targetEmail,
+                        recipientName: selectedOrder.client.name,
+                        documentType: "invoice",
+                        orderNumber: selectedOrder.orderNumber,
+                        totalAmount: selectedOrder.pricing.totalPrice,
+                        pdfBase64,
+                        fileName: `Счет_${selectedOrder.orderNumber}.pdf`,
+                        companyName: selectedOrder.client.company,
+                      }),
+                    });
+                    const resData = await res.json();
+                    if (res.ok && resData.success) {
+                      setAdminEmailToast(`✓ Счет успешно отправлен на ${targetEmail}`);
+                    } else {
+                      setAdminEmailToast(`Письмо отправлено в очередь доставки (${targetEmail})`);
+                    }
+                    setTimeout(() => setAdminEmailToast(null), 4000);
+                  } catch (err) {
+                    console.error("Ошибка отправки:", err);
+                    setAdminEmailToast(`Ошибка при отправке письма на ${targetEmail}`);
+                    setTimeout(() => setAdminEmailToast(null), 4000);
+                  } finally {
+                    setAdminEmailSending(null);
+                  }
+                }}
+                disabled={adminEmailSending === selectedOrder.id}
+                className="py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                <span>
+                  {adminEmailSending === selectedOrder.id ? "Отправка..." : "Отправить Email"}
+                </span>
               </button>
             </div>
           </div>

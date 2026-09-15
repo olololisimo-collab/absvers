@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { AuthProvider } from "./context/AuthContext";
+import { AdminAuthProvider } from "./context/AdminAuthContext";
 
 export const metadata: Metadata = {
   title: "absvers — Модульные шкафчики-локеры из инженерного АБС-пластика",
@@ -16,7 +17,9 @@ export default function RootLayout({
     <html lang="ru">
       <body className="min-h-screen bg-slate-50 text-slate-800 antialiased">
         <AuthProvider>
-          {children}
+          <AdminAuthProvider>
+            {children}
+          </AdminAuthProvider>
         </AuthProvider>
       </body>
     </html>

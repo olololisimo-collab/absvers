@@ -30,8 +30,13 @@ import {
   CircleDollarSign,
   Boxes,
   Percent,
-  RefreshCw
+  RefreshCw,
+  Lock,
+  LogOut
 } from "lucide-react";
+import { useAdminAuth } from "../context/AdminAuthContext";
+import AdminSecurityModal from "./AdminSecurityModal";
+import AdminLoginGate from "./AdminLoginGate";
 
 // --- ТИПЫ ДАННЫХ: ТОВАРЫ И СКЛАДСКИЕ ОСТАТКИ ---
 export interface ProductItem {
@@ -297,8 +302,10 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; bg: string; text: stri
 };
 
 export default function AdminDashboard() {
+  const { logoutAdmin } = useAdminAuth();
   // Активная вкладка: 'orders' (Заявки) или 'products' (Каталог и цены)
   const [activeTab, setActiveTab] = useState<"orders" | "products">("products");
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
 
   // Состояние товаров
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
@@ -464,7 +471,11 @@ export default function AdminDashboard() {
   }, [products]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-6 bg-slate-100 min-h-screen font-sans text-slate-900">
+    <AdminLoginGate
+      title="Склад и цены — Доступ администратора"
+      description="Для управления ценами, остатками и номенклатурой товаров введите PIN-код или учетные данные."
+    >
+      <div className="w-full max-w-7xl mx-auto p-4 md:p-6 bg-slate-100 min-h-screen font-sans text-slate-900">
       {/* УВЕДОМЛЕНИЕ ОБ УСПЕШНОМ СОХРАНЕНИИ */}
       {saveSuccessMsg && (
         <div className="fixed bottom-6 right-6 z-50 bg-emerald-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-emerald-700 flex items-center gap-3 animate-in slide-in-from-bottom duration-300">
@@ -487,27 +498,47 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        {/* ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200">
+        {/* ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И БЕЗОПАСНОСТЬ */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200">
+            <button
+              onClick={() => setActiveTab("products")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
+                activeTab === "products"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Boxes className="w-4 h-4 text-emerald-600" /> Каталог и склад
+            </button>
+            <button
+              onClick={() => setActiveTab("orders")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
+                activeTab === "orders"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <ShoppingCart className="w-4 h-4 text-sky-600" /> Заявки
+            </button>
+          </div>
+
           <button
-            onClick={() => setActiveTab("products")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
-              activeTab === "products"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+            onClick={() => setIsSecurityModalOpen(true)}
+            className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+            title="Смена логина, пароля и PIN-кода"
           >
-            <Boxes className="w-4 h-4 text-emerald-600" /> Каталог, цены и склад
+            <Lock className="w-4 h-4 text-slate-600" />
+            <span className="hidden sm:inline">Пароли</span>
           </button>
+
           <button
-            onClick={() => setActiveTab("orders")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
-              activeTab === "orders"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+            onClick={logoutAdmin}
+            className="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+            title="Выйти из админки"
           >
-            <ShoppingCart className="w-4 h-4 text-sky-600" /> Заявки и сметы
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Выйти</span>
           </button>
         </div>
       </div>
@@ -1018,6 +1049,12 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+      {/* Модалка смены паролей и PIN-кода */}
+      <AdminSecurityModal
+        isOpen={isSecurityModalOpen}
+        onClose={() => setIsSecurityModalOpen(false)}
+      />
     </div>
+  </AdminLoginGate>
   );
 }

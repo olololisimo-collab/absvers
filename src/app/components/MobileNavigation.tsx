@@ -17,9 +17,11 @@ import {
   LogIn,
   LogOut,
   Building2,
-  FolderHeart
+  FolderHeart,
+  Lock
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useAdminAuth } from "../context/AdminAuthContext";
 
 interface MobileNavigationProps {
   activeTab: "catalog" | "configurator" | "admin" | "orders" | "cabinet";
@@ -36,6 +38,7 @@ export default function MobileNavigation({
 }: MobileNavigationProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { user, isLoggedIn, openAuthModal, logout } = useAuth();
+  const { isAdminAuthenticated, logoutAdmin } = useAdminAuth();
 
   return (
     <>
@@ -289,12 +292,15 @@ export default function MobileNavigation({
                     setActiveTab("orders");
                     setIsDrawerOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
                     activeTab === "orders" ? "bg-amber-50 text-amber-700" : "text-slate-700 hover:bg-slate-50"
                   }`}
                 >
-                  <FileSpreadsheet className="w-5 h-5 text-amber-600" />
-                  <span>Панель заявок и КП</span>
+                  <div className="flex items-center gap-3">
+                    <FileSpreadsheet className="w-5 h-5 text-amber-600" />
+                    <span>Панель заявок и КП</span>
+                  </div>
+                  {!isAdminAuthenticated && <Lock className="w-3.5 h-3.5 text-slate-400" />}
                 </button>
 
                 <button
@@ -302,12 +308,15 @@ export default function MobileNavigation({
                     setActiveTab("admin");
                     setIsDrawerOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
                     activeTab === "admin" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-50"
                   }`}
                 >
-                  <Settings className="w-5 h-5 text-indigo-600" />
-                  <span>Склад и цены</span>
+                  <div className="flex items-center gap-3">
+                    <Settings className="w-5 h-5 text-indigo-600" />
+                    <span>Склад и цены</span>
+                  </div>
+                  {!isAdminAuthenticated && <Lock className="w-3.5 h-3.5 text-slate-400" />}
                 </button>
 
                 <div className="pt-2 border-t border-slate-100 mt-2">

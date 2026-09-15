@@ -33,10 +33,12 @@ import CartModal, { CartItem } from "./components/CartModal";
 import MobileNavigation from "./components/MobileNavigation";
 import AuthModal from "./components/AuthModal";
 import { useAuth } from "./context/AuthContext";
+import { useAdminAuth } from "./context/AdminAuthContext";
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<"catalog" | "configurator" | "admin" | "orders" | "cabinet">("catalog");
   const { user, isLoggedIn, isAuthModalOpen, openAuthModal, closeAuthModal, logout } = useAuth();
+  const { isAdminAuthenticated, logoutAdmin } = useAdminAuth();
   
   // Shopping cart state
   const [cartItems, setCartItems] = useState<CartItem[]>([
@@ -162,6 +164,11 @@ export default function HomePage() {
             >
               <FileSpreadsheet className="w-4 h-4" />
               <span className="hidden lg:inline">Заявки и КП</span>
+              {isAdminAuthenticated ? (
+                <span className="w-2 h-2 rounded-full bg-emerald-400" title="Администратор авторизован" />
+              ) : (
+                <Lock className="w-3 h-3 text-slate-400" title="Требуется авторизация" />
+              )}
             </button>
             <button
               onClick={() => setActiveTab("admin")}
@@ -173,6 +180,11 @@ export default function HomePage() {
             >
               <Settings className="w-4 h-4" />
               <span className="hidden lg:inline">Склад и цены</span>
+              {isAdminAuthenticated ? (
+                <span className="w-2 h-2 rounded-full bg-emerald-400" title="Администратор авторизован" />
+              ) : (
+                <Lock className="w-3 h-3 text-slate-400" title="Требуется авторизация" />
+              )}
             </button>
 
             {/* Cart Header Button */}
@@ -671,26 +683,7 @@ export default function HomePage() {
         {activeTab === "orders" && (
           <div className="py-8 bg-slate-100" id="section-orders">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1B4965]">
-                    Управление заявками и коммерческими предложениями
-                  </h1>
-                  <p className="text-sm text-slate-600 mt-1">
-                    Обработка поступивших конфигураций, выставление счетов и изменение статусов заказов.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setActiveTab("catalog")}
-                  className="text-xs font-semibold px-3 py-2 bg-white rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
-                >
-                  ← В магазин
-                </button>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-                <AdminOrdersPanel />
-              </div>
+              <AdminOrdersPanel />
             </div>
           </div>
         )}
@@ -729,26 +722,7 @@ export default function HomePage() {
         {activeTab === "admin" && (
           <div className="py-8 bg-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1B4965]">
-                    Панель администратора интернет-магазина
-                  </h1>
-                  <p className="text-sm text-slate-600 mt-1">
-                    Управление номенклатурой товаров, ценами, остатками и поступившими заказами.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setActiveTab("catalog")}
-                  className="text-xs font-semibold px-3 py-2 bg-white rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
-                >
-                  ← В магазин
-                </button>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-                <AdminDashboard />
-              </div>
+              <AdminDashboard />
             </div>
           </div>
         )}

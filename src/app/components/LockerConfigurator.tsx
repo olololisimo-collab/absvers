@@ -20,8 +20,10 @@ import {
   User,
   Building2,
   CheckCircle2,
-  Loader2
+  Loader2,
+  FileText
 } from "lucide-react";
+import { generateConfiguratorSpecPdf } from "../utils/pdfGenerator";
 
 // --- ТИПЫ ДАННЫХ ---
 export type LockerModelId = "T-382XXL" | "T-382L" | "T-382M" | "T-382S";
@@ -360,6 +362,33 @@ export default function LockerConfigurator() {
 
         {/* Кнопки сохранения и расшаривания */}
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              generateConfiguratorSpecPdf({
+                modelName: activeModel.name,
+                columnsCount,
+                tiersCount: activeModel.tiers,
+                totalCells,
+                dimensions: `${totalWidth} × ${totalHeight} × ${totalDepth} мм`,
+                lockType: lockOption.name,
+                accessories: EXTRA_OPTIONS.filter((opt) => selectedExtras[opt.id]).map((opt) => opt.name),
+                totalPrice,
+                vatAmount,
+                client: formData.name ? {
+                  name: formData.name,
+                  phone: formData.phone || "+7 (800) 550-42-88",
+                  email: formData.email,
+                  company: formData.company,
+                } : undefined
+              });
+            }}
+            className="px-3.5 py-2 rounded-xl bg-[#1B4965] hover:bg-[#144B6E] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition"
+            title="Скачать официальное коммерческое предложение с расчетом сметы"
+          >
+            <Download className="w-3.5 h-3.5 text-[#8BC34A]" />
+            <span>Скачать КП (PDF)</span>
+          </button>
+
           <button
             onClick={saveToLocalStorage}
             className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-xs transition"
@@ -756,15 +785,41 @@ export default function LockerConfigurator() {
                 <p className="text-sm text-slate-600 mb-6">
                   Спецификация и расчёт стоимости вашего шкафа отправлены на <strong>{formData.email}</strong>. Наш инженер свяжется с вами в течение 15 минут.
                 </p>
-                <button
-                  onClick={() => {
-                    setIsEmailModalOpen(false);
-                    setSubmitStatus("idle");
-                  }}
-                  className="w-full py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
-                >
-                  Вернуться к конфигуратору
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                  <button
+                    onClick={() => {
+                      generateConfiguratorSpecPdf({
+                        modelName: activeModel.name,
+                        columnsCount,
+                        tiersCount: activeModel.tiers,
+                        totalCells,
+                        dimensions: `${totalWidth} × ${totalHeight} × ${totalDepth} мм`,
+                        lockType: lockOption.name,
+                        accessories: EXTRA_OPTIONS.filter((opt) => selectedExtras[opt.id]).map((opt) => opt.name),
+                        totalPrice,
+                        vatAmount,
+                        client: {
+                          name: formData.name,
+                          phone: formData.phone,
+                          email: formData.email,
+                          company: formData.company,
+                        }
+                      });
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-[#8BC34A] hover:bg-[#7CB342] text-slate-950 font-bold text-sm shadow transition flex items-center justify-center gap-2"
+                  >
+                    <Download className="w-4 h-4" /> Скачать КП (PDF)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEmailModalOpen(false);
+                      setSubmitStatus("idle");
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
+                  >
+                    Вернуться к конфигуратору
+                  </button>
+                </div>
               </div>
             ) : (
               <div>

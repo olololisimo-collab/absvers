@@ -22,8 +22,10 @@ import {
   PackageCheck,
   CircleDollarSign,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Receipt
 } from "lucide-react";
+import { generateCommercialOfferPdf, generateInvoicePdf, PdfOrderData } from "../utils/pdfGenerator";
 
 // --- ТИПЫ ДАННЫХ ЗАЯВКИ ---
 export type OrderStatus = "new" | "in_progress" | "kp_sent" | "paid" | "completed" | "cancelled";
@@ -586,7 +588,7 @@ export default function AdminOrdersPanel() {
             </div>
 
             {/* Кнопки действий менеджера */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <a
                 href={`tel:${selectedOrder.client.phone}`}
                 className="py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition"
@@ -594,7 +596,63 @@ export default function AdminOrdersPanel() {
                 <PhoneCall className="w-4 h-4" /> Позвонить клиенту
               </a>
               <button
-                onClick={() => alert(`Счет и договор на сумму ${selectedOrder.pricing.totalPrice.toLocaleString('ru-RU')} ₽ сгенерированы в PDF`)}
+                onClick={() => {
+                  const pdfData: PdfOrderData = {
+                    orderNumber: selectedOrder.orderNumber,
+                    createdAt: selectedOrder.createdAt,
+                    client: selectedOrder.client,
+                    items: [
+                      {
+                        name: `${selectedOrder.configuration.modelName} (${selectedOrder.configuration.dimensions})`,
+                        description: `${selectedOrder.configuration.columnsCount} секц. × ${selectedOrder.configuration.tiersCount} яр. (${selectedOrder.configuration.totalCells} ячеек), замок: ${selectedOrder.configuration.lockType}`,
+                        dimensions: selectedOrder.configuration.dimensions,
+                        quantity: 1,
+                        price: selectedOrder.pricing.totalPrice,
+                      }
+                    ],
+                    pricing: {
+                      subtotal: selectedOrder.pricing.basePrice,
+                      discountAmount: 0,
+                      deliveryCost: selectedOrder.pricing.extrasPrice,
+                      totalAmount: selectedOrder.pricing.totalPrice,
+                      vatAmount: selectedOrder.pricing.vatAmount,
+                    },
+                    status: selectedOrder.status,
+                    managerComment: selectedOrder.managerComment,
+                  };
+                  generateCommercialOfferPdf(pdfData);
+                }}
+                className="py-3 rounded-xl bg-[#1B4965] hover:bg-[#144B6E] text-white text-xs font-bold flex items-center justify-center gap-2 transition"
+              >
+                <Download className="w-4 h-4 text-[#8BC34A]" /> Скачать КП (PDF)
+              </button>
+              <button
+                onClick={() => {
+                  const pdfData: PdfOrderData = {
+                    orderNumber: selectedOrder.orderNumber,
+                    createdAt: selectedOrder.createdAt,
+                    client: selectedOrder.client,
+                    items: [
+                      {
+                        name: `${selectedOrder.configuration.modelName} (${selectedOrder.configuration.dimensions})`,
+                        description: `${selectedOrder.configuration.columnsCount} секц. × ${selectedOrder.configuration.tiersCount} яр. (${selectedOrder.configuration.totalCells} ячеек), замок: ${selectedOrder.configuration.lockType}`,
+                        dimensions: selectedOrder.configuration.dimensions,
+                        quantity: 1,
+                        price: selectedOrder.pricing.totalPrice,
+                      }
+                    ],
+                    pricing: {
+                      subtotal: selectedOrder.pricing.basePrice,
+                      discountAmount: 0,
+                      deliveryCost: selectedOrder.pricing.extrasPrice,
+                      totalAmount: selectedOrder.pricing.totalPrice,
+                      vatAmount: selectedOrder.pricing.vatAmount,
+                    },
+                    status: selectedOrder.status,
+                    managerComment: selectedOrder.managerComment,
+                  };
+                  generateInvoicePdf(pdfData);
+                }}
                 className="py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-2 transition"
               >
                 <FileText className="w-4 h-4 text-emerald-400" /> Выставить счёт (PDF)

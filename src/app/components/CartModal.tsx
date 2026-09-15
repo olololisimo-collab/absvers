@@ -20,9 +20,12 @@ import {
   Mail, 
   Loader2, 
   FileSpreadsheet, 
-  Package
+  Package,
+  Download,
+  FileText
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { generateCommercialOfferPdf, generateInvoicePdf, PdfOrderData } from "../utils/pdfGenerator";
 
 export interface CartItem {
   id: string;
@@ -866,10 +869,86 @@ export default function CartModal({
               <div className="flex flex-wrap justify-center gap-3 pt-2">
                 <button
                   onClick={() => {
+                    const pdfData: PdfOrderData = {
+                      orderNumber: completedOrder.orderNumber,
+                      createdAt: new Date().toLocaleDateString("ru-RU"),
+                      client: {
+                        name: completedOrder.client.name,
+                        phone: completedOrder.client.phone,
+                        email: completedOrder.client.email,
+                        company: completedOrder.client.company,
+                        inn: completedOrder.client.inn,
+                        city: completedOrder.client.city,
+                        address: completedOrder.client.address,
+                      },
+                      items: (completedOrder.items || []).map((it: any) => ({
+                        name: it.name,
+                        description: it.description,
+                        dimensions: it.dimensions,
+                        quantity: it.quantity,
+                        price: it.price,
+                      })),
+                      pricing: {
+                        subtotal: completedOrder.pricing?.subtotal || completedOrder.total,
+                        discountAmount: completedOrder.pricing?.discountAmount || 0,
+                        deliveryCost: completedOrder.pricing?.deliveryCost || 0,
+                        totalAmount: completedOrder.total,
+                        vatAmount: completedOrder.pricing?.vatAmount || Math.round(completedOrder.total * (20 / 120)),
+                      },
+                      status: completedOrder.status,
+                    };
+                    generateCommercialOfferPdf(pdfData);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#8BC34A] hover:bg-[#7CB342] text-slate-950 font-bold text-xs shadow transition flex items-center gap-1.5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Скачать КП (PDF)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const pdfData: PdfOrderData = {
+                      orderNumber: completedOrder.orderNumber,
+                      createdAt: new Date().toLocaleDateString("ru-RU"),
+                      client: {
+                        name: completedOrder.client.name,
+                        phone: completedOrder.client.phone,
+                        email: completedOrder.client.email,
+                        company: completedOrder.client.company,
+                        inn: completedOrder.client.inn,
+                        city: completedOrder.client.city,
+                        address: completedOrder.client.address,
+                      },
+                      items: (completedOrder.items || []).map((it: any) => ({
+                        name: it.name,
+                        description: it.description,
+                        dimensions: it.dimensions,
+                        quantity: it.quantity,
+                        price: it.price,
+                      })),
+                      pricing: {
+                        subtotal: completedOrder.pricing?.subtotal || completedOrder.total,
+                        discountAmount: completedOrder.pricing?.discountAmount || 0,
+                        deliveryCost: completedOrder.pricing?.deliveryCost || 0,
+                        totalAmount: completedOrder.total,
+                        vatAmount: completedOrder.pricing?.vatAmount || Math.round(completedOrder.total * (20 / 120)),
+                      },
+                      status: completedOrder.status,
+                    };
+                    generateInvoicePdf(pdfData);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition flex items-center gap-1.5"
+                >
+                  <FileText className="w-4 h-4 text-emerald-400" />
+                  <span>Скачать Счёт (PDF)</span>
+                </button>
+
+                <button
+                  onClick={() => {
                     onClose();
                     setStep("cart");
                   }}
-                  className="px-6 py-2.5 rounded-xl bg-[#1B4965] hover:bg-[#144B6E] text-white font-bold text-sm shadow transition"
+                  className="px-5 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition"
                 >
                   Продолжить покупки
                 </button>

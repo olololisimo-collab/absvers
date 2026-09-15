@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { CartItem } from "./CartModal";
+import { generateCommercialOfferPdf, generateInvoicePdf, PdfOrderData } from "../utils/pdfGenerator";
 
 // Initial demo orders for fallback / testing
 const DEMO_STORE_ORDERS = [
@@ -239,9 +240,48 @@ export default function CustomerOrdersPanel({
     setTimeout(() => setIsSavedToast(false), 3000);
   };
 
-  // Mock download PDF
-  const handleDownloadDoc = (type: "kp" | "invoice", orderNumber: string) => {
-    alert(`Формирование и скачивание документа: ${type === "kp" ? "Коммерческое предложение (КП)" : "Официальный счет на оплату"} для заказа ${orderNumber} в формате PDF...`);
+  // Real download PDF (Commercial Offer & B2B Invoice)
+  const handleDownloadDoc = (type: "kp" | "invoice", order: any) => {
+    try {
+      const pdfData: PdfOrderData = {
+        orderNumber: order.orderNumber || "ABS-2026-0000",
+        createdAt: order.createdAt || new Date().toLocaleDateString("ru-RU"),
+        client: {
+          name: order.client?.name || user?.name || "Покупатель",
+          phone: order.client?.phone || user?.phone || "+7 (800) 550-42-88",
+          email: order.client?.email || user?.email || undefined,
+          company: order.client?.company || user?.companyName || undefined,
+          inn: order.client?.inn || user?.inn || undefined,
+          city: order.client?.city || user?.city || undefined,
+          address: order.client?.address || user?.address || undefined,
+        },
+        items: (order.items || []).map((it: any) => ({
+          name: it.name || "Модульный шкаф absvers",
+          description: it.description || undefined,
+          dimensions: it.dimensions || undefined,
+          quantity: it.quantity || 1,
+          price: it.price || 0,
+        })),
+        pricing: {
+          subtotal: order.pricing?.subtotal || order.pricing?.totalAmount || order.total || 0,
+          discountAmount: order.pricing?.discountAmount || 0,
+          deliveryCost: order.pricing?.deliveryCost || 0,
+          totalAmount: order.pricing?.totalAmount || order.pricing?.totalPrice || order.total || 0,
+          vatAmount: order.pricing?.vatAmount || Math.round((order.pricing?.totalAmount || order.total || 0) * (20 / 120)),
+        },
+        status: order.status,
+        managerComment: order.managerComment,
+      };
+
+      if (type === "kp") {
+        generateCommercialOfferPdf(pdfData);
+      } else {
+        generateInvoicePdf(pdfData);
+      }
+    } catch (err) {
+      console.error("Ошибка при формировании PDF:", err);
+      alert("Не удалось сформировать PDF. Пожалуйста, попробуйте еще раз.");
+    }
   };
 
   // If user is not logged in, show Invitation Screen
@@ -561,7 +601,7 @@ export default function CustomerOrdersPanel({
                       <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           <button
-                            onClick={() => handleDownloadDoc("kp", order.orderNumber)}
+                            onClick={() => handleDownloadDoc("kp", order)}
                             className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition"
                             title="Скачать официальное коммерческое предложение с расчетом сметы"
                           >
@@ -570,7 +610,7 @@ export default function CustomerOrdersPanel({
                           </button>
 
                           <button
-                            onClick={() => handleDownloadDoc("invoice", order.orderNumber)}
+                            onClick={() => handleDownloadDoc("invoice", order)}
                             className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition"
                             title="Скачать официальный счет на оплату с НДС 20%"
                           >

@@ -135,16 +135,18 @@ export default function MobileNavigation({
             <span className="text-[10px] mt-1">Корзина</span>
           </button>
 
-          {/* Заявки и КП */}
-          <button
-            onClick={() => setActiveTab("orders")}
-            className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
-              activeTab === "orders" ? "text-amber-600 font-bold" : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <FileSpreadsheet className={`w-5 h-5 ${activeTab === "orders" ? "stroke-[2.5px] text-amber-600" : ""}`} />
-            <span className="text-[10px] mt-1">Заявки</span>
-          </button>
+          {/* Заявки и КП (видны в нижнем баре только для авторизованного администратора) */}
+          {isAdminAuthenticated && (
+            <button
+              onClick={() => setActiveTab("orders")}
+              className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
+                activeTab === "orders" ? "text-amber-600 font-bold" : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <FileSpreadsheet className={`w-5 h-5 ${activeTab === "orders" ? "stroke-[2.5px] text-amber-600" : ""}`} />
+              <span className="text-[10px] mt-1">Заявки</span>
+            </button>
+          )}
 
           {/* Профиль / Вход */}
           <button
@@ -287,37 +289,41 @@ export default function MobileNavigation({
                   <span>3D Конфигуратор</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("orders");
-                    setIsDrawerOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
-                    activeTab === "orders" ? "bg-amber-50 text-amber-700" : "text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <FileSpreadsheet className="w-5 h-5 text-amber-600" />
-                    <span>Панель заявок и КП</span>
-                  </div>
-                  {!isAdminAuthenticated && <Lock className="w-3.5 h-3.5 text-slate-400" />}
-                </button>
+                {isAdminAuthenticated && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setActiveTab("orders");
+                        setIsDrawerOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
+                        activeTab === "orders" ? "bg-amber-50 text-amber-700" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileSpreadsheet className="w-5 h-5 text-amber-600" />
+                        <span>Панель заявок и КП</span>
+                      </div>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    </button>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("admin");
-                    setIsDrawerOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
-                    activeTab === "admin" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Settings className="w-5 h-5 text-indigo-600" />
-                    <span>Склад и цены</span>
-                  </div>
-                  {!isAdminAuthenticated && <Lock className="w-3.5 h-3.5 text-slate-400" />}
-                </button>
+                    <button
+                      onClick={() => {
+                        setActiveTab("admin");
+                        setIsDrawerOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-sm font-semibold transition ${
+                        activeTab === "admin" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Settings className="w-5 h-5 text-indigo-600" />
+                        <span>Склад и цены</span>
+                      </div>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    </button>
+                  </>
+                )}
 
                 <div className="pt-2 border-t border-slate-100 mt-2">
                   <a

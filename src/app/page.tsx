@@ -153,39 +153,37 @@ export default function HomePage() {
               <Sliders className="w-4 h-4" />
               <span>3D-Конфигуратор</span>
             </button>
-            <button
-              onClick={() => setActiveTab("orders")}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${
-                activeTab === "orders"
-                  ? "bg-amber-600 text-white shadow-sm"
-                  : "text-slate-300 hover:text-white hover:bg-white/10"
-              }`}
-              id="btn-nav-orders"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span className="hidden lg:inline">Заявки и КП</span>
-              {isAdminAuthenticated ? (
-                <span className="w-2 h-2 rounded-full bg-emerald-400" title="Администратор авторизован" />
-              ) : (
-                <Lock className="w-3 h-3 text-slate-400" title="Требуется авторизация" />
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("admin")}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${
-                activeTab === "admin"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-300 hover:text-white hover:bg-white/10"
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden lg:inline">Склад и цены</span>
-              {isAdminAuthenticated ? (
-                <span className="w-2 h-2 rounded-full bg-emerald-400" title="Администратор авторизован" />
-              ) : (
-                <Lock className="w-3 h-3 text-slate-400" title="Требуется авторизация" />
-              )}
-            </button>
+
+            {/* Вкладки администрирования видны только авторизованному администратору */}
+            {isAdminAuthenticated && (
+              <>
+                <button
+                  onClick={() => setActiveTab("orders")}
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${
+                    activeTab === "orders"
+                      ? "bg-amber-600 text-white shadow-sm"
+                      : "text-slate-300 hover:text-white hover:bg-white/10"
+                  }`}
+                  id="btn-nav-orders"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span className="hidden lg:inline">Заявки и КП</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" title="Администратор авторизован" />
+                </button>
+                <button
+                  onClick={() => setActiveTab("admin")}
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${
+                    activeTab === "admin"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-300 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden lg:inline">Склад и цены</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" title="Администратор авторизован" />
+                </button>
+              </>
+            )}
 
             {/* Cart Header Button */}
             <button
@@ -793,7 +791,28 @@ export default function HomePage() {
 
           <div className="mt-8 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400">
             <p>© {new Date().getFullYear()} absvers. Все права защищены. Модульные шкафы из инженерного пластика.</p>
-            <p className="mt-2 sm:mt-0">Разработано для фитнес-клубов, школ, офисов и производств</p>
+            <div className="flex items-center gap-4 mt-2 sm:mt-0">
+              <span>Для фитнес-клубов, школ, офисов и производств</span>
+              {isAdminAuthenticated ? (
+                <button
+                  onClick={logoutAdmin}
+                  className="text-slate-400 hover:text-rose-400 text-[11px] font-mono transition flex items-center gap-1 cursor-pointer"
+                  title="Выйти из режима администратора"
+                >
+                  <LogOut className="w-3 h-3" />
+                  <span>Выход из админки</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setActiveTab("orders")}
+                  className="text-slate-500 hover:text-slate-300 text-[11px] font-mono transition flex items-center gap-1 cursor-pointer opacity-40 hover:opacity-100"
+                  title="Служебный вход для сотрудников"
+                >
+                  <Lock className="w-3 h-3" />
+                  <span>Служебный вход</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </footer>
